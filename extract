@@ -1,0 +1,49 @@
+#! /bin/bash
+
+if [ -z "$1" ]
+	then
+	echo "Error: No arguments provided!"
+	echo "Usage: extract <input>"
+	exit 1
+fi
+
+echo 'Cleaning up...'
+rm -rf ./frames 2>/dev/null
+rm -rf ./output 2>/dev/null
+rm -rf ./texts 2>/dev/null
+rm -rf ./logs 2>/dev/null
+rm ./names.txt 2>/dev/null
+rm ./titles.txt 2>/dev/null
+echo 'Done!'
+
+mkdir logs
+
+echo 'Extracting frames...'
+mkdir frames
+ffmpeg -i "$1" -vf fps=1/5 frames/out%d.png
+echo 'Done!'
+
+echo 'Extracting names and titles...'
+mkdir output
+/Applications/MATLAB_R2014b.app/bin/matlab -nojvm -nodisplay -nosplash < corner_extractor.m
+echo 'Done!'
+
+echo 'Processing results...'
+mkdir texts
+echo 'Extracting names...'
+for i in ./output/name-out*.png; do
+	b=`basename "$i" .png`
+	tesseract "$i" "./texts/$b" -l fra -psm 7 > ./logs/ocr-names.log 2> ./logs/ocr-names.error.log
+done
+
+echo 'Extracting jobs...'
+for i in ./output/title-out*.png; do
+	b=`basename "$i" .png`
+	tesseract "$i" "./texts/$b" -l fra -psm 7 > ./logs/ocr-titles.log 2> ./logs/ocr-titles.error.log
+done
+echo 'Done!'
+
+echo 'Concating results...'
+cat ./texts/name* > names.txt
+cat ./texts/title* > titles.txt
+echo 'Results are in files names.txt and titles.txt'
