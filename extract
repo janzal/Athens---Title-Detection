@@ -44,6 +44,6 @@ done
 echo 'Done!'
 
 echo 'Concating results...'
-cat ./texts/name* > names.txt
-cat ./texts/title* > titles.txt
+head -n 1 ./texts/name* > ./names.txt
+head -n 1 ./texts/title* > ./titles.txt
 echo 'Results are in files names.txt and titles.txt'
